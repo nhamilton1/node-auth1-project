@@ -14,7 +14,7 @@ function restricted(req, res, next) {
     next()
   } else {
     next({
-      message: `invalid credentials`,
+      message: `You shall not pass!`,
       status: 401
     })
   }
@@ -30,7 +30,7 @@ function restricted(req, res, next) {
 */
 async function checkUsernameFree(req, res, next) {
   try {
-    const users = await User.findBy({ username: req.body.username }).first()
+    const users = await User.findBy({ username: req.body.username })
     if (!users.length) {
       next()
     } else {

@@ -34,8 +34,8 @@ const {
 */
 
 router.post('/register', 
-  checkUsernameFree, 
   checkPasswordLength,
+  checkUsernameFree, 
   async (req, res, next) => {
   try {
     const { username, password } = req.body
@@ -48,6 +48,13 @@ router.post('/register',
   }
 })
 
+// const { username, password } = req.body
+// const hash = bcrypt.hashSync(password, 8)
+// User.add({ username, password: hash })
+//   .then(reg => {
+//     res.status(201).json(reg)
+//   })
+//   .catch(next)
 
 
 /**
@@ -72,7 +79,7 @@ router.post('/login', async (req, res, next) => {
     const user = await User.findBy({ username }).first()
     if (user && bcrypt.compareSync(password, user.password)) {
       req.session.user = user
-      res.status(200).json({ message: `welcome ${user.username}` })
+      res.status(200).json({ message: `Welcome ${user.username}` })
     } else {
       next({ status: 401, message: "Invalid credentials" })
     }
@@ -106,7 +113,6 @@ router.get('/logout', async (req, res, next) => {
                 message: 'you cannot leave!'
             })
         } else {
-            // set a cookie in the past so it will flush the cookie
             res.json({
                 status: 200,
                 message: `logged out`
