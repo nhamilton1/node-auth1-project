@@ -36,7 +36,6 @@ const {
 router.post('/register', 
   checkUsernameFree, 
   checkPasswordLength,
-  checkUsernameExists, 
   async (req, res, next) => {
   try {
     const { username, password } = req.body
@@ -67,6 +66,21 @@ router.post('/register',
   }
 */
 
+router.post('/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body
+    const user = await User.findBy({ username }).first()
+    if (user && bcrypt.compareSync(password, user.password)) {
+      req.session.user = user
+      res.status(200).json({ message: `welcome ${user.username}` })
+    } else {
+      next({ status: 401, message: "Invalid credentials" })
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
 
 /**
   3 [GET] /api/auth/logout
@@ -83,6 +97,29 @@ router.post('/register',
     "message": "no session"
   }
 */
+
+router.get('/logout', async (req, res, next) => {
+  if (req.session.user) {
+    req.session.destroy((err) => {
+        if (err) {
+            res.json({
+                message: 'you cannot leave!'
+            })
+        } else {
+            // set a cookie in the past so it will flush the cookie
+            res.json({
+                status: 200,
+                message: `logged out`
+            })
+        }
+    })
+  } else {
+      res.json({
+          status: 200,
+          message: `no session`
+      })
+  }
+})
 
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules

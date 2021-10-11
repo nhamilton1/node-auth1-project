@@ -30,16 +30,17 @@ function restricted(req, res, next) {
 */
 async function checkUsernameFree(req, res, next) {
   try {
-    const { username } = req.body
-    const user = await User.findBy({ username }).first()
-    if (!user) {
+    const users = await User.findBy({ username: req.body.username }).first()
+    if (!users.length) {
       next()
+    } else {
+      next({
+        status: 422,
+        message: "Username taken"
+      })
     }
   } catch (err) {
-    next({
-      status: 422,
-      message: "Username taken"
-    })
+    next(err)
   }
 }
 
@@ -53,17 +54,17 @@ async function checkUsernameFree(req, res, next) {
 */
 async function checkUsernameExists(req, res, next) {
   try {
-    const { username, password } = req.body
-    const user = await User.findBy({ username }).first()
-    if (user && bcrypt.compareSync(password, user.password)) {
-      req.session.user = user
-      res.status(200).json({ message: `welcome back ${user.username}` })
+    const users = await User.findBy({ username: req.body.username }).first()
+    if (users.length) {
+      next()
+    } else {
+      next({
+        status: 401,
+        message: "Invalid credentials"
+      })
     }
   } catch (err) {
-    next({
-      status: 401,
-      message: "Invalid credentials"
-    })
+    next(err)
   }
 }
 
@@ -77,15 +78,16 @@ async function checkUsernameExists(req, res, next) {
 */
 async function checkPasswordLength(req, res, next) {
   try {
-    const { password } = req.body
-    if (password.length < 3) {
+    if (!req.body.password || req.body.password.length < 3) {
+      next({
+        status: 422,
+        message: "Password must be longer than 3 chars"
+      })
+    } else {
       next()
     }
   } catch (err) {
-    next({
-      status: 422,
-      message: "Password must be longer than 3 chars"
-    })
+    next(err)
   }
 }
 
